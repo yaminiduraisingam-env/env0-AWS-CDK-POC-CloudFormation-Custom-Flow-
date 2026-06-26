@@ -1,0 +1,562 @@
+{
+ "Description": "env0 + AWS CDK POC: ALB-fronted Fargate service (Western Union demo).",
+ "Resources": {
+  "PocVpc26541646": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc"
+     }
+    ]
+   }
+  },
+  "PocVpcpublicSubnet1SubnetCEF82CB4": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc/publicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocVpcpublicSubnet1RouteTableE315B6F7": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc/publicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocVpcpublicSubnet1RouteTableAssociation3E31863B": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "PocVpcpublicSubnet1RouteTableE315B6F7"
+    },
+    "SubnetId": {
+     "Ref": "PocVpcpublicSubnet1SubnetCEF82CB4"
+    }
+   }
+  },
+  "PocVpcpublicSubnet1DefaultRoute4FCDE766": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "PocVpcIGW3F2D8A7E"
+    },
+    "RouteTableId": {
+     "Ref": "PocVpcpublicSubnet1RouteTableE315B6F7"
+    }
+   },
+   "DependsOn": [
+    "PocVpcVPCGW407758B1"
+   ]
+  },
+  "PocVpcpublicSubnet2Subnet09033800": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc/publicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocVpcpublicSubnet2RouteTableDEF7EB1C": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc/publicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocVpcpublicSubnet2RouteTableAssociationB1B59E06": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "PocVpcpublicSubnet2RouteTableDEF7EB1C"
+    },
+    "SubnetId": {
+     "Ref": "PocVpcpublicSubnet2Subnet09033800"
+    }
+   }
+  },
+  "PocVpcpublicSubnet2DefaultRoute8C36B126": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "PocVpcIGW3F2D8A7E"
+    },
+    "RouteTableId": {
+     "Ref": "PocVpcpublicSubnet2RouteTableDEF7EB1C"
+    }
+   },
+   "DependsOn": [
+    "PocVpcVPCGW407758B1"
+   ]
+  },
+  "PocVpcIGW3F2D8A7E": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "WesternUnionCdkPoc/PocVpc"
+     }
+    ]
+   }
+  },
+  "PocVpcVPCGW407758B1": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "PocVpcIGW3F2D8A7E"
+    },
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocCluster6EE63E82": {
+   "Type": "AWS::ECS::Cluster"
+  },
+  "PocServiceLB84CD6349": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "PocServiceLBSecurityGroupB8B0A787",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "PocVpcpublicSubnet1SubnetCEF82CB4"
+     },
+     {
+      "Ref": "PocVpcpublicSubnet2Subnet09033800"
+     }
+    ],
+    "Type": "application"
+   },
+   "DependsOn": [
+    "PocVpcpublicSubnet1DefaultRoute4FCDE766",
+    "PocVpcpublicSubnet1RouteTableAssociation3E31863B",
+    "PocVpcpublicSubnet2DefaultRoute8C36B126",
+    "PocVpcpublicSubnet2RouteTableAssociationB1B59E06"
+   ]
+  },
+  "PocServiceLBSecurityGroupB8B0A787": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB WesternUnionCdkPocPocServiceLBEA6B701C",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocServiceLBSecurityGrouptoWesternUnionCdkPocPocServiceSecurityGroupE1E65C9880C23E0298": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "PocServiceSecurityGroupAA77B52D",
+      "GroupId"
+     ]
+    },
+    "FromPort": 80,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "PocServiceLBSecurityGroupB8B0A787",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "ToPort": 80
+   }
+  },
+  "PocServiceLBPublicListener507CD7FC": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "PocServiceLBPublicListenerECSGroupD5A10EB3"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "PocServiceLB84CD6349"
+    },
+    "Port": 80,
+    "Protocol": "HTTP"
+   }
+  },
+  "PocServiceLBPublicListenerECSGroupD5A10EB3": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "HealthCheckPath": "/",
+    "Matcher": {
+     "HttpCode": "200-399"
+    },
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "ip",
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   }
+  },
+  "PocServiceTaskDefTaskRole17714683": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   }
+  },
+  "PocServiceTaskDef1CAF77ED": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Essential": true,
+      "Image": "public.ecr.aws/nginx/nginx:stable",
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "PocServiceTaskDefwebLogGroup0D642223"
+        },
+        "awslogs-stream-prefix": "PocService",
+        "awslogs-region": "us-east-1"
+       }
+      },
+      "Name": "web",
+      "PortMappings": [
+       {
+        "ContainerPort": 80,
+        "Protocol": "tcp"
+       }
+      ]
+     }
+    ],
+    "Cpu": "256",
+    "ExecutionRoleArn": {
+     "Fn::GetAtt": [
+      "PocServiceTaskDefExecutionRole229E0BA3",
+      "Arn"
+     ]
+    },
+    "Family": "WesternUnionCdkPocPocServiceTaskDef0B17EB67",
+    "Memory": "512",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "TaskRoleArn": {
+     "Fn::GetAtt": [
+      "PocServiceTaskDefTaskRole17714683",
+      "Arn"
+     ]
+    }
+   }
+  },
+  "PocServiceTaskDefwebLogGroup0D642223": {
+   "Type": "AWS::Logs::LogGroup",
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain"
+  },
+  "PocServiceTaskDefExecutionRole229E0BA3": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   }
+  },
+  "PocServiceTaskDefExecutionRoleDefaultPolicy0BC13F64": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "PocServiceTaskDefwebLogGroup0D642223",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "PocServiceTaskDefExecutionRoleDefaultPolicy0BC13F64",
+    "Roles": [
+     {
+      "Ref": "PocServiceTaskDefExecutionRole229E0BA3"
+     }
+    ]
+   }
+  },
+  "PocService29AFCE45": {
+   "Type": "AWS::ECS::Service",
+   "Properties": {
+    "Cluster": {
+     "Ref": "PocCluster6EE63E82"
+    },
+    "DeploymentConfiguration": {
+     "Alarms": {
+      "AlarmNames": [],
+      "Enable": false,
+      "Rollback": false
+     },
+     "MaximumPercent": 200,
+     "MinimumHealthyPercent": 50
+    },
+    "DesiredCount": 1,
+    "EnableECSManagedTags": false,
+    "HealthCheckGracePeriodSeconds": 60,
+    "LaunchType": "FARGATE",
+    "LoadBalancers": [
+     {
+      "ContainerName": "web",
+      "ContainerPort": 80,
+      "TargetGroupArn": {
+       "Ref": "PocServiceLBPublicListenerECSGroupD5A10EB3"
+      }
+     }
+    ],
+    "NetworkConfiguration": {
+     "AwsvpcConfiguration": {
+      "AssignPublicIp": "ENABLED",
+      "SecurityGroups": [
+       {
+        "Fn::GetAtt": [
+         "PocServiceSecurityGroupAA77B52D",
+         "GroupId"
+        ]
+       }
+      ],
+      "Subnets": [
+       {
+        "Ref": "PocVpcpublicSubnet1SubnetCEF82CB4"
+       },
+       {
+        "Ref": "PocVpcpublicSubnet2Subnet09033800"
+       }
+      ]
+     }
+    },
+    "TaskDefinition": {
+     "Ref": "PocServiceTaskDef1CAF77ED"
+    }
+   },
+   "DependsOn": [
+    "PocServiceLBPublicListenerECSGroupD5A10EB3",
+    "PocServiceLBPublicListener507CD7FC",
+    "PocServiceTaskDefTaskRole17714683"
+   ]
+  },
+  "PocServiceSecurityGroupAA77B52D": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "WesternUnionCdkPoc/PocService/Service/SecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "PocVpc26541646"
+    }
+   },
+   "DependsOn": [
+    "PocServiceTaskDefTaskRole17714683"
+   ]
+  },
+  "PocServiceSecurityGroupfromWesternUnionCdkPocPocServiceLBSecurityGroup7C07E46480D62E5D0D": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "FromPort": 80,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "PocServiceSecurityGroupAA77B52D",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "PocServiceLBSecurityGroupB8B0A787",
+      "GroupId"
+     ]
+    },
+    "ToPort": 80
+   },
+   "DependsOn": [
+    "PocServiceTaskDefTaskRole17714683"
+   ]
+  }
+ },
+ "Outputs": {
+  "PocServiceLoadBalancerDNSE155290C": {
+   "Value": {
+    "Fn::GetAtt": [
+     "PocServiceLB84CD6349",
+     "DNSName"
+    ]
+   }
+  },
+  "PocServiceServiceURL8BF2B141": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "http://",
+      {
+       "Fn::GetAtt": [
+        "PocServiceLB84CD6349",
+        "DNSName"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "ServiceURL": {
+   "Description": "Public URL of the Fargate service. Curl this to validate the deploy.",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "http://",
+      {
+       "Fn::GetAtt": [
+        "PocServiceLB84CD6349",
+        "DNSName"
+       ]
+      }
+     ]
+    ]
+   }
+  }
+ }
+}
