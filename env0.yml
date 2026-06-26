@@ -1,0 +1,28 @@
+# env0 Custom Flow for the Western Union AWS CDK POC.
+#
+# Template IaC type:  CloudFormation
+# CloudFormation file: synth/WesternUnionCdkPoc.template.json
+#
+# This hook runs at the earliest stage (setupVariables.after), before env0's
+# native CloudFormation deploy/destroy steps. It installs the Python CDK
+# dependencies and synthesizes the CDK app into a plain CloudFormation template
+# at synth/WesternUnionCdkPoc.template.json. env0 then deploys that template
+# with `aws cloudformation deploy` and manages the stack lifecycle natively.
+#
+# Required template environment variable (set in the env0 UI, not here):
+#   ENV0_CF_CLI_ARGS_deploy = --capabilities CAPABILITY_NAMED_IAM
+# The stack creates IAM roles, so CloudFormation needs this acknowledgement.
+version: 2
+shell: bash
+deploy:
+  steps:
+    setupVariables:
+      after:
+        - chmod +x ./scripts/synth.sh && ./scripts/synth.sh
+destroy:
+  steps:
+    setupVariables:
+      after:
+        # Re-synth on destroy so the template path resolves. env0 deletes the
+        # stack by name, so this is belt-and-suspenders and safe to keep.
+        - chmod +x ./scripts/synth.sh && ./scripts/synth.sh
