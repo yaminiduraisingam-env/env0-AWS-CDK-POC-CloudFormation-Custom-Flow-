@@ -21,7 +21,7 @@ to end. No prior CDK or CloudFormation experience is assumed.
 
 ## What gets deployed
 
-A single CloudFormation stack (named WesternUnionCdkPoc) containing about 25
+A single CloudFormation stack containing about 25
 resources:
 
 - A VPC with two public subnets across two availability zones, an internet
