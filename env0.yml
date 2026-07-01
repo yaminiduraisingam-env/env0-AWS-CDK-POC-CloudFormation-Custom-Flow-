@@ -9,6 +9,9 @@
 # at synth/WesternUnionCdkPoc.template.json. env0 then deploys that template
 # with `aws cloudformation deploy` and manages the stack lifecycle natively.
 #
+# Each step uses the named form (name + run) so the label shows up in the env0
+# deployment log, which makes the flow easier to read and debug.
+#
 # Required template environment variable (set in the env0 UI, not here):
 #   ENV0_CF_CLI_ARGS_deploy = --capabilities CAPABILITY_NAMED_IAM
 # The stack creates IAM roles, so CloudFormation needs this acknowledgement.
@@ -18,11 +21,13 @@ deploy:
   steps:
     setupVariables:
       after:
-        - chmod +x ./scripts/synth.sh && ./scripts/synth.sh
+        - name: Install CDK deps and synth CloudFormation template
+          run: chmod +x ./scripts/synth.sh && ./scripts/synth.sh
 destroy:
   steps:
     setupVariables:
       after:
         # Re-synth on destroy so the template path resolves. env0 deletes the
         # stack by name, so this is belt-and-suspenders and safe to keep.
-        - chmod +x ./scripts/synth.sh && ./scripts/synth.sh
+        - name: Re-synth CloudFormation template so its path resolves
+          run: chmod +x ./scripts/synth.sh && ./scripts/synth.sh
